@@ -36,6 +36,10 @@
 #include <zmk/split/bluetooth/central.h>
 #endif
 
+#if !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+#include <zmk/split/bluetooth/peripheral_layers.h>
+#endif
+
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if !DT_HAS_CHOSEN(zmk_underglow)
@@ -51,6 +55,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define SAT_MAX 100
 #define BRT_MAX 100
 
+#define LAYER_GAMING 1
+#define LAYER_LOWER 2
+#define LAYER_NUMERIC 3
+
 BUILD_ASSERT(CONFIG_ZMK_RGB_UNDERGLOW_BRT_MIN <= CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX,
              "ERROR: RGB underglow maximum brightness is less than minimum brightness");
 
@@ -59,6 +67,7 @@ enum rgb_underglow_effect {
     UNDERGLOW_EFFECT_BREATHE,
     UNDERGLOW_EFFECT_SPECTRUM,
     UNDERGLOW_EFFECT_SWIRL,
+    UNDERGLOW_EFFECT_LAYER_INDICATORS,
     UNDERGLOW_EFFECT_NUMBER // Used to track number of underglow effects
 };
 
@@ -190,6 +199,8 @@ static void zmk_rgb_underglow_effect_swirl(void) {
     state.animation_step = state.animation_step % HUE_MAX;
 }
 
+static bool valdur_layer_active(int layer);
+
 static int zmk_led_generate_status(void);
 
 static void zmk_led_write_pixels(void) {
@@ -197,6 +208,7 @@ static void zmk_led_write_pixels(void) {
     int bat0 = zmk_battery_state_of_charge();
     int blend = 0;
     int reset_ext_power = 0;
+
     if (state.status_active) {
         blend = zmk_led_generate_status();
     }
@@ -263,13 +275,21 @@ static void zmk_led_write_pixels(void) {
 
 #if defined(DT_N_S_underglow_indicators_EXISTS)
 #define UNDERGLOW_INDICATORS_ENABLED 1
+#define LEFT_HALF
 #else
 #define UNDERGLOW_INDICATORS_ENABLED 0
+#define RIGHT_HALF
 #endif
+
+
 
 #if !UNDERGLOW_INDICATORS_ENABLED
 static int zmk_led_generate_status(void) { return 0; }
+static bool valdur_layer_active(int layer) { return peripheral_layer_active(layer); }
+
 #else
+
+static bool valdur_layer_active(int layer) { return zmk_keymap_layer_active(layer); }
 
 const uint8_t underglow_layer_state[] = DT_PROP(UNDERGLOW_INDICATORS, layer_state);
 const uint8_t underglow_ble_state[] = DT_PROP(UNDERGLOW_INDICATORS, ble_state);
@@ -282,19 +302,24 @@ const uint8_t underglow_bat_rhs[] = DT_PROP(UNDERGLOW_INDICATORS, bat_rhs);
         g : (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX * (G)) / 0xff,                                       \
         b : (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX * (B)) / 0xff                                        \
     })
+
 const struct led_rgb red = HEXRGB(0xff, 0x00, 0x00);
+const struct led_rgb orange = HEXRGB(0xff, 0x88, 0x00);
 const struct led_rgb yellow = HEXRGB(0xff, 0xff, 0x00);
 const struct led_rgb green = HEXRGB(0x00, 0xff, 0x00);
-const struct led_rgb dull_green = HEXRGB(0x00, 0xff, 0x68);
+const struct led_rgb nice_blue = HEXRGB(0x00, 0xbe, 0xff);
 const struct led_rgb magenta = HEXRGB(0xff, 0x00, 0xff);
 const struct led_rgb white = HEXRGB(0xff, 0xff, 0xff);
 const struct led_rgb lilac = HEXRGB(0x6b, 0x1f, 0xce);
+const struct led_rgb greenish = HEXRGB(0x00, 0xff, 0x88);
+
+
 
 static void zmk_led_battery_level(int bat_level, const uint8_t *addresses, size_t addresses_len) {
     struct led_rgb bat_colour;
 
     if (bat_level > 40) {
-        bat_colour = green;
+        bat_colour = nice_blue;
     } else if (bat_level > 20) {
         bat_colour = yellow;
     } else {
@@ -348,16 +373,16 @@ static int zmk_led_generate_status(void) {
     zmk_hid_indicators_t led_flags = zmk_hid_indicators_get_current_profile();
 
     if (led_flags & ZMK_LED_CAPSLOCK_BIT)
-        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, capslock)] = red;
+        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, capslock)] = yellow;
     if (led_flags & ZMK_LED_NUMLOCK_BIT)
-        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, numlock)] = red;
+        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, numlock)] = yellow;
     if (led_flags & ZMK_LED_SCROLLLOCK_BIT)
-        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, scrolllock)] = red;
+        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, scrolllock)] = yellow;
 
     // LAYER STATUS
     for (uint8_t i = 0; i < DT_PROP_LEN(UNDERGLOW_INDICATORS, layer_state); i++) {
         if (zmk_keymap_layer_active(i))
-            status_pixels[underglow_layer_state[i]] = magenta;
+            status_pixels[underglow_layer_state[i]] = lilac;
     }
 
     struct zmk_endpoint_instance active_endpoint = zmk_endpoints_selected();
@@ -374,7 +399,7 @@ static int zmk_led_generate_status(void) {
             active_ble_profile_index == i) { // connected AND active
             status_pixels[ble_pixel] = white;
         } else if (status == 2) { // connected
-            status_pixels[ble_pixel] = dull_green;
+            status_pixels[ble_pixel] = nice_blue;
         } else if (status == 1) { // paired
             status_pixels[ble_pixel] = red;
         } else if (status == 0) { // unused
@@ -387,7 +412,7 @@ static int zmk_led_generate_status(void) {
         active_endpoint.transport == ZMK_TRANSPORT_USB) { // connected AND active
         status_pixels[DT_PROP(UNDERGLOW_INDICATORS, usb_state)] = white;
     } else if (usb_state == ZMK_USB_CONN_HID) { // connected
-        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, usb_state)] = dull_green;
+        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, usb_state)] = nice_blue;
     } else if (usb_state == ZMK_USB_CONN_POWERED) { // powered
         status_pixels[DT_PROP(UNDERGLOW_INDICATORS, usb_state)] = red;
     } else if (usb_state == ZMK_USB_CONN_NONE) { // disconnected
@@ -409,6 +434,129 @@ static int zmk_led_generate_status(void) {
 }
 #endif // underglow_indicators exists
 
+static inline struct led_rgb hue_sat(int hue, int sat) {
+    struct zmk_led_hsb hsb = state.color;
+    hsb.h = hue;
+    hsb.s = sat;
+    return hsb_to_rgb(hsb_scale_min_max(hsb));
+}
+
+#define MK_GREEN hue_sat(150, 100)
+#define MK_RED hue_sat(348, 100)
+#define MK_BLUE hue_sat(194, 100)
+#define MK_ORANGE hue_sat(20, 100)
+#define MK_YELLOW hue_sat(51, 100)
+#define MK_PURPLE hue_sat(267, 60)
+#define MK_WHITE hue_sat(0, 0);
+
+/*
+  MoErgo 40 LEDs
+
+ 34 28 22 16 10                10 16 22 28 34
+ 35 29 23 17 11 6            6 11 17 23 29 35
+ 36 30 24 18 12 7            7 12 18 24 30 36
+ 37 31 25 19 13 8            8 13 19 25 31 37
+ 38 32 26 20 14 9            9 14 20 26 32 38
+ 39 33 27 21 15                15 21 27 33 39
+               0 1 2       2 1 0
+               3 4 5       5 4 3
+*/
+
+static void valdur_indicate_custom_layers(void) {
+    for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
+        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
+    }
+    if (valdur_layer_active(LAYER_NUMERIC)) {
+        struct led_rgb col_green = MK_GREEN;
+        struct led_rgb col_yellow = MK_YELLOW;
+
+#ifdef LEFT_HALF
+        // indicator
+        pixels[36] = col_green;
+#endif
+
+        // numbers
+        pixels[11] = col_green;
+        pixels[12] = col_green;
+        pixels[13] = col_green;
+#ifdef RIGHT_HALF
+        pixels[14] = col_green;
+#endif
+
+        pixels[17] = col_green;
+        pixels[18] = col_green;
+        pixels[19] = col_green;
+
+        pixels[23] = col_green;
+        pixels[24] = col_green;
+        pixels[25] = col_green;
+#ifdef LEFT_HALF
+        pixels[26] = col_green;
+#endif
+
+        // operators
+        pixels[31] = col_yellow;
+        pixels[32] = col_yellow;
+        pixels[27] = col_yellow;
+
+        pixels[7] = col_yellow;
+        pixels[8] = col_yellow;
+        pixels[9] = col_yellow;
+
+    } else if (valdur_layer_active(LAYER_LOWER)) {
+        struct led_rgb col_orange = MK_ORANGE;
+        struct led_rgb col_blue = MK_BLUE;
+
+#ifdef LEFT_HALF
+        // indicator
+        pixels[37] = col_orange;
+#endif
+
+        // arrows
+        pixels[18] = col_orange;
+        pixels[25] = col_orange;
+        pixels[19] = col_orange;
+        pixels[13] = col_orange;
+
+        // // ctrl arrows
+        // pixels[8] = yellow;
+        // pixels[31] = yellow;
+
+        // home, end, pgup, pgdn
+        pixels[7] = col_blue;
+        pixels[8] = col_blue;
+        pixels[24] = col_blue;
+        pixels[12] = col_blue;
+    } else if (valdur_layer_active(LAYER_GAMING)) {
+        struct led_rgb col_red = MK_RED;
+        struct led_rgb col_blue = MK_BLUE;
+#ifdef LEFT_HALF
+
+        // indicator
+        pixels[38] = col_red;
+
+        // wsad
+        pixels[18] = col_red;
+        pixels[25] = col_red;
+        pixels[19] = col_red;
+        pixels[13] = col_red;
+
+        // enter, backspace, delete
+        pixels[5] = col_blue;
+        pixels[27] = col_blue;
+        pixels[33] = col_blue;
+#else
+        pixels[6] = col_red;
+#endif
+    } else {
+#ifdef LEFT_HALF
+        pixels[6] = MK_PURPLE;
+#else
+        pixels[6] = MK_PURPLE;
+#endif
+    }
+}
+
 static void zmk_rgb_underglow_tick(struct k_work *work) {
     switch (state.current_effect) {
     case UNDERGLOW_EFFECT_SOLID:
@@ -422,6 +570,9 @@ static void zmk_rgb_underglow_tick(struct k_work *work) {
         break;
     case UNDERGLOW_EFFECT_SWIRL:
         zmk_rgb_underglow_effect_swirl();
+        break;
+    case UNDERGLOW_EFFECT_LAYER_INDICATORS:
+        valdur_indicate_custom_layers();
         break;
     }
 
@@ -581,7 +732,6 @@ static void zmk_rgb_underglow_off_handler(struct k_work *work) {
     for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
         pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
     }
-
     zmk_led_write_pixels();
 }
 
