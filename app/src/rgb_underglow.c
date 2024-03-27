@@ -285,7 +285,7 @@ const uint8_t underglow_bat_rhs[] = DT_PROP(UNDERGLOW_INDICATORS, bat_rhs);
 const struct led_rgb red = HEXRGB(0xff, 0x00, 0x00);
 const struct led_rgb yellow = HEXRGB(0xff, 0xff, 0x00);
 const struct led_rgb green = HEXRGB(0x00, 0xff, 0x00);
-const struct led_rgb dull_green = HEXRGB(0x00, 0xff, 0x68);
+const struct led_rgb dull_green = HEXRGB(0x7b, 0xbe, 0xff);
 const struct led_rgb magenta = HEXRGB(0xff, 0x00, 0xff);
 const struct led_rgb white = HEXRGB(0xff, 0xff, 0xff);
 const struct led_rgb lilac = HEXRGB(0x6b, 0x1f, 0xce);
@@ -294,7 +294,7 @@ static void zmk_led_battery_level(int bat_level, const uint8_t *addresses, size_
     struct led_rgb bat_colour;
 
     if (bat_level > 40) {
-        bat_colour = green;
+        bat_colour = dull_green;
     } else if (bat_level > 20) {
         bat_colour = yellow;
     } else {
@@ -348,16 +348,16 @@ static int zmk_led_generate_status(void) {
     zmk_hid_indicators_t led_flags = zmk_hid_indicators_get_current_profile();
 
     if (led_flags & ZMK_LED_CAPSLOCK_BIT)
-        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, capslock)] = red;
+        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, capslock)] = yellow;
     if (led_flags & ZMK_LED_NUMLOCK_BIT)
-        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, numlock)] = red;
+        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, numlock)] = yellow;
     if (led_flags & ZMK_LED_SCROLLLOCK_BIT)
-        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, scrolllock)] = red;
+        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, scrolllock)] = yellow;
 
     // LAYER STATUS
     for (uint8_t i = 0; i < DT_PROP_LEN(UNDERGLOW_INDICATORS, layer_state); i++) {
         if (zmk_keymap_layer_active(i))
-            status_pixels[underglow_layer_state[i]] = magenta;
+            status_pixels[underglow_layer_state[i]] = lilac;
     }
 
     struct zmk_endpoint_instance active_endpoint = zmk_endpoints_selected();
