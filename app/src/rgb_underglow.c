@@ -85,13 +85,6 @@ static const struct device *const ext_power = DEVICE_DT_GET(DT_INST(0, zmk_ext_p
 
 void zmk_rgb_set_ext_power(void);
 
-#define HEXRGB(R, G, B)                                                                            \
-    ((struct led_rgb){                                                                             \
-        r : (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX * (R)) / 0xff,                                       \
-        g : (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX * (G)) / 0xff,                                       \
-        b : (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX * (B)) / 0xff                                        \
-    })
-
 static struct zmk_led_hsb hsb_scale_min_max(struct zmk_led_hsb hsb) {
     hsb.b = CONFIG_ZMK_RGB_UNDERGLOW_BRT_MIN +
             (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX - CONFIG_ZMK_RGB_UNDERGLOW_BRT_MIN) * hsb.b / BRT_MAX;
@@ -202,10 +195,10 @@ static int zmk_led_generate_status(void);
 static void valdur_indicate_custom_layers(void) {
     uint8_t gaming_layer = 4;
     if (zmk_keymap_layer_active(gaming_layer)) {
-        pixels[18] = HEXRGB(50, 0, 0);
-        pixels[25] = HEXRGB(50, 0, 0);
-        pixels[19] = HEXRGB(50, 0, 0);
-        pixels[13] = HEXRGB(50, 0, 0);
+        pixels[18] = (struct led_rgb){50, 0, 0};
+        pixels[25] = (struct led_rgb){50, 0, 0};
+        pixels[19] = (struct led_rgb){50, 0, 0};
+        pixels[13] = (struct led_rgb){50, 0, 0};
     }
 }
 
@@ -295,6 +288,13 @@ const uint8_t underglow_layer_state[] = DT_PROP(UNDERGLOW_INDICATORS, layer_stat
 const uint8_t underglow_ble_state[] = DT_PROP(UNDERGLOW_INDICATORS, ble_state);
 const uint8_t underglow_bat_lhs[] = DT_PROP(UNDERGLOW_INDICATORS, bat_lhs);
 const uint8_t underglow_bat_rhs[] = DT_PROP(UNDERGLOW_INDICATORS, bat_rhs);
+
+#define HEXRGB(R, G, B)                                                                            \
+    ((struct led_rgb){                                                                             \
+        r : (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX * (R)) / 0xff,                                       \
+        g : (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX * (G)) / 0xff,                                       \
+        b : (CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX * (B)) / 0xff                                        \
+    })
 
 const struct led_rgb red = HEXRGB(0xff, 0x00, 0x00);
 const struct led_rgb yellow = HEXRGB(0xff, 0xff, 0x00);
