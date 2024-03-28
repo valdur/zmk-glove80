@@ -192,23 +192,11 @@ static void zmk_rgb_underglow_effect_swirl(void) {
 
 static int zmk_led_generate_status(void);
 
-static void valdur_indicate_custom_layers(void) {
-    uint8_t gaming_layer = 4;
-    if (zmk_keymap_layer_active(gaming_layer)) {
-        pixels[18] = (struct led_rgb){50, 0, 0};
-        pixels[25] = (struct led_rgb){50, 0, 0};
-        pixels[19] = (struct led_rgb){50, 0, 0};
-        pixels[13] = (struct led_rgb){50, 0, 0};
-    }
-}
-
 static void zmk_led_write_pixels(void) {
     static struct led_rgb led_buffer[STRIP_NUM_PIXELS];
     int bat0 = zmk_battery_state_of_charge();
     int blend = 0;
     int reset_ext_power = 0;
-
-    valdur_indicate_custom_layers();
 
     if (state.status_active) {
         blend = zmk_led_generate_status();
@@ -423,6 +411,16 @@ static int zmk_led_generate_status(void) {
 }
 #endif // underglow_indicators exists
 
+static void valdur_indicate_custom_layers(void) {
+    uint8_t gaming_layer = 4;
+    if (zmk_keymap_layer_active(gaming_layer)) {
+        pixels[18] = (struct led_rgb){50, 0, 0};
+        pixels[25] = (struct led_rgb){50, 0, 0};
+        pixels[19] = (struct led_rgb){50, 0, 0};
+        pixels[13] = (struct led_rgb){50, 0, 0};
+    }
+}
+
 static void zmk_rgb_underglow_tick(struct k_work *work) {
     switch (state.current_effect) {
     case UNDERGLOW_EFFECT_SOLID:
@@ -438,6 +436,7 @@ static void zmk_rgb_underglow_tick(struct k_work *work) {
         zmk_rgb_underglow_effect_swirl();
         break;
     }
+    valdur_indicate_custom_layers();
 
     zmk_led_write_pixels();
 }
@@ -595,6 +594,7 @@ static void zmk_rgb_underglow_off_handler(struct k_work *work) {
     for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
         pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
     }
+    valdur_indicate_custom_layers();
 
     zmk_led_write_pixels();
 }
