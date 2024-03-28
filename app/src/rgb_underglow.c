@@ -199,8 +199,9 @@ static void zmk_rgb_underglow_effect_swirl(void) {
 
 static int zmk_led_generate_status(void);
 
-static void valdur_indicate_custom_layers() {
-    if (zmk_keymap_layer_active(4)) {
+static void valdur_indicate_custom_layers(void) {
+    uint8_t gaming_layer = 4;
+    if (zmk_keymap_layer_active(gaming_layer)) {
         pixels[18] = HEXRGB(50, 0, 0);
         pixels[25] = HEXRGB(50, 0, 0);
         pixels[19] = HEXRGB(50, 0, 0);
