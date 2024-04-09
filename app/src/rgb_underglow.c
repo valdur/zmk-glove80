@@ -435,7 +435,7 @@ static int zmk_led_generate_status(void) {
             active_ble_profile_index == i) { // connected AND active
             status_pixels[ble_pixel] = white;
         } else if (status == 2) { // connected
-            status_pixels[ble_pixel] = dull_green;
+            status_pixels[ble_pixel] = nice_blue;
         } else if (status == 1) { // paired
             status_pixels[ble_pixel] = red;
         } else if (status == 0) { // unused
@@ -448,7 +448,7 @@ static int zmk_led_generate_status(void) {
         active_endpoint.transport == ZMK_TRANSPORT_USB) { // connected AND active
         status_pixels[DT_PROP(UNDERGLOW_INDICATORS, usb_state)] = white;
     } else if (usb_state == ZMK_USB_CONN_HID) { // connected
-        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, usb_state)] = dull_green;
+        status_pixels[DT_PROP(UNDERGLOW_INDICATORS, usb_state)] = nice_blue;
     } else if (usb_state == ZMK_USB_CONN_POWERED) { // powered
         status_pixels[DT_PROP(UNDERGLOW_INDICATORS, usb_state)] = red;
     } else if (usb_state == ZMK_USB_CONN_NONE) { // disconnected
