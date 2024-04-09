@@ -291,20 +291,63 @@ const uint8_t underglow_bat_rhs[] = DT_PROP(UNDERGLOW_INDICATORS, bat_rhs);
     })
 
 const struct led_rgb red = HEXRGB(0xff, 0x00, 0x00);
+const struct led_rgb orange = HEXRGB(0xff, 0x88, 0x00);
 const struct led_rgb yellow = HEXRGB(0xff, 0xff, 0x00);
 const struct led_rgb green = HEXRGB(0x00, 0xff, 0x00);
-const struct led_rgb dull_green = HEXRGB(0x00, 0xbe, 0xff);
+const struct led_rgb nice_blue = HEXRGB(0x00, 0xbe, 0xff);
 const struct led_rgb magenta = HEXRGB(0xff, 0x00, 0xff);
 const struct led_rgb white = HEXRGB(0xff, 0xff, 0xff);
 const struct led_rgb lilac = HEXRGB(0x6b, 0x1f, 0xce);
 
+/*
+  MoErgo 40 LEDs
+
+  34 28 22 16 10
+  35 29 23 17 11 6
+  36 30 24 18 12 7
+  37 31 25 19 13 8
+  38 32 26 20 14 9
+  39 33 27 21 15
+                0 1 2
+                3 4 5
+*/
+
 static void valdur_indicate_custom_layers(void) {
-    uint8_t gaming_layer = 4;
+    uint8_t gaming_layer = 1;
+    uint8_t leftnav_layer = 2;
     if (zmk_keymap_layer_active(gaming_layer)) {
+        // wsad
         pixels[18] = red;
         pixels[25] = red;
         pixels[19] = red;
         pixels[13] = red;
+
+    } else if (zmk_keymap_layer_active(leftnav_layer)) {
+
+        // arrows
+        pixels[18] = yellow;
+        pixels[25] = yellow;
+        pixels[19] = yellow;
+        pixels[13] = yellow;
+
+        // ctrl arrows
+        pixels[8] = orange;
+        pixels[31] = orange;
+
+        // home, end, pgup, pgdn
+        pixels[17] = nice_blue;
+        pixels[20] = nice_blue;
+        pixels[24] = nice_blue;
+        pixels[12] = nice_blue;
+
+        // ctrl home, end
+        pixels[7] = lilac;
+        pixels[30] = lilac;
+
+        // enter, backspace, delete
+        pixels[14] = red;
+        pixels[26] = red;
+        pixels[32] = red;
     }
 }
 
@@ -312,7 +355,7 @@ static void zmk_led_battery_level(int bat_level, const uint8_t *addresses, size_
     struct led_rgb bat_colour;
 
     if (bat_level > 40) {
-        bat_colour = dull_green;
+        bat_colour = nice_blue;
     } else if (bat_level > 20) {
         bat_colour = yellow;
     } else {
