@@ -314,15 +314,9 @@ const struct led_rgb lilac = HEXRGB(0x6b, 0x1f, 0xce);
 
 static void valdur_indicate_custom_layers(void) {
     uint8_t gaming_layer = 1;
-    uint8_t leftnav_layer = 2;
-    if (zmk_keymap_layer_active(gaming_layer)) {
-        // wsad
-        pixels[18] = red;
-        pixels[25] = red;
-        pixels[19] = red;
-        pixels[13] = red;
+    uint8_t lower_layer = 2;
 
-    } else if (zmk_keymap_layer_active(leftnav_layer)) {
+    if (zmk_keymap_layer_active(lower_layer)) {
 
         // arrows
         pixels[18] = yellow;
@@ -331,8 +325,8 @@ static void valdur_indicate_custom_layers(void) {
         pixels[13] = yellow;
 
         // ctrl arrows
-        pixels[8] = orange;
-        pixels[31] = orange;
+        pixels[8] = yellow;
+        pixels[31] = yellow;
 
         // home, end, pgup, pgdn
         pixels[17] = nice_blue;
@@ -341,13 +335,19 @@ static void valdur_indicate_custom_layers(void) {
         pixels[12] = nice_blue;
 
         // ctrl home, end
-        pixels[7] = lilac;
-        pixels[30] = lilac;
+        pixels[7] = nice_blue;
+        pixels[30] = nice_blue;
 
         // enter, backspace, delete
-        pixels[14] = red;
-        pixels[26] = red;
-        pixels[32] = red;
+        pixels[14] = lilac;
+        pixels[26] = lilac;
+        pixels[32] = lilac;
+    } else if (zmk_keymap_layer_active(gaming_layer)) {
+        // wsad
+        pixels[18] = red;
+        pixels[25] = red;
+        pixels[19] = red;
+        pixels[13] = red;
     }
 }
 
