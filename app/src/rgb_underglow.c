@@ -191,11 +191,10 @@ static void zmk_rgb_underglow_effect_swirl(void) {
     state.animation_step = state.animation_step % HUE_MAX;
 }
 
+static void valdur_indicate_custom_layers(void);
 static void valdur_underglow_effect_layer_indicators(void) { valdur_indicate_custom_layers(); }
 
 static int zmk_led_generate_status(void);
-
-static void valdur_indicate_custom_layers(void);
 
 static void zmk_led_write_pixels(void) {
     static struct led_rgb led_buffer[STRIP_NUM_PIXELS];
