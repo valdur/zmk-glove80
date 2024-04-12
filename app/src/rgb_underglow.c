@@ -59,6 +59,7 @@ enum rgb_underglow_effect {
     UNDERGLOW_EFFECT_BREATHE,
     UNDERGLOW_EFFECT_SPECTRUM,
     UNDERGLOW_EFFECT_SWIRL,
+    UNDERGLOW_EFFECT_LAYER_INDICATORS,
     UNDERGLOW_EFFECT_NUMBER // Used to track number of underglow effects
 };
 
@@ -190,6 +191,8 @@ static void zmk_rgb_underglow_effect_swirl(void) {
     state.animation_step = state.animation_step % HUE_MAX;
 }
 
+static void valdur_underglow_effect_layer_indicators(void) { valdur_indicate_custom_layers(); }
+
 static int zmk_led_generate_status(void);
 
 static void valdur_indicate_custom_layers(void);
@@ -199,8 +202,6 @@ static void zmk_led_write_pixels(void) {
     int bat0 = zmk_battery_state_of_charge();
     int blend = 0;
     int reset_ext_power = 0;
-
-    valdur_indicate_custom_layers();
 
     if (state.status_active) {
         blend = zmk_led_generate_status();
@@ -388,9 +389,9 @@ static void valdur_indicate_custom_layers(void) {
         pixels[32] = yellow;
         pixels[27] = yellow; // dot
 
-        pixels[12] = yellow;
-        pixels[13] = yellow;
-        pixels[14] = yellow;
+        pixels[7] = yellow;
+        pixels[8] = yellow;
+        pixels[9] = yellow;
     }
 }
 
@@ -526,6 +527,9 @@ static void zmk_rgb_underglow_tick(struct k_work *work) {
         break;
     case UNDERGLOW_EFFECT_SWIRL:
         zmk_rgb_underglow_effect_swirl();
+        break;
+    case UNDERGLOW_EFFECT_LAYER_INDICATORS:
+        valdur_underglow_effect_layer_indicators();
         break;
     }
 
