@@ -192,7 +192,6 @@ static void zmk_rgb_underglow_effect_swirl(void) {
 }
 
 static void valdur_indicate_custom_layers(void);
-static void valdur_underglow_effect_layer_indicators(void) { valdur_indicate_custom_layers(); }
 
 static int zmk_led_generate_status(void);
 
@@ -274,7 +273,12 @@ static void zmk_led_write_pixels(void) {
 
 #if !UNDERGLOW_INDICATORS_ENABLED
 static int zmk_led_generate_status(void) { return 0; }
-static void valdur_indicate_custom_layers(void) {}
+static void valdur_indicate_custom_layers(void) {
+
+    for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
+        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
+    }
+}
 
 #else
 
@@ -314,6 +318,11 @@ const struct led_rgb greenish = HEXRGB(0x00, 0xff, 0x44);
 */
 
 static void valdur_indicate_custom_layers(void) {
+
+    for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
+        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
+    }
+
     uint8_t gaming_layer = 1;
     uint8_t lower_layer = 2;
     uint8_t numeric_layer = 3;
@@ -528,7 +537,7 @@ static void zmk_rgb_underglow_tick(struct k_work *work) {
         zmk_rgb_underglow_effect_swirl();
         break;
     case UNDERGLOW_EFFECT_LAYER_INDICATORS:
-        valdur_underglow_effect_layer_indicators();
+        valdur_indicate_custom_layers();
         break;
     }
 
