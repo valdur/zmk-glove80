@@ -276,7 +276,10 @@ static int zmk_led_generate_status(void) { return 0; }
 static void valdur_indicate_custom_layers(void) {
 
     for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
-        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
+        struct zmk_led_hsb hsb = state.color;
+        hsb.h = state.animation_step * 60;
+
+        pixels[i] = hsb_to_rgb(hsb_scale_min_max(hsb));
     }
 }
 
@@ -302,7 +305,7 @@ const struct led_rgb nice_blue = HEXRGB(0x00, 0xbe, 0xff);
 const struct led_rgb magenta = HEXRGB(0xff, 0x00, 0xff);
 const struct led_rgb white = HEXRGB(0xff, 0xff, 0xff);
 const struct led_rgb lilac = HEXRGB(0x6b, 0x1f, 0xce);
-const struct led_rgb greenish = HEXRGB(0x00, 0xff, 0x44);
+const struct led_rgb greenish = HEXRGB(0x00, 0xff, 0x88);
 
 /*
   MoErgo 40 LEDs
@@ -328,6 +331,8 @@ static void valdur_indicate_custom_layers(void) {
     uint8_t numeric_layer = 3;
 
     if (zmk_keymap_layer_active(lower_layer)) {
+
+        state.animation_step = 1;
 
         // indicator
         pixels[37] = yellow;
@@ -358,6 +363,8 @@ static void valdur_indicate_custom_layers(void) {
         pixels[32] = lilac;
     } else if (zmk_keymap_layer_active(gaming_layer)) {
 
+        state.animation_step = 2;
+
         // indicator
         pixels[38] = red;
 
@@ -373,6 +380,8 @@ static void valdur_indicate_custom_layers(void) {
         pixels[33] = lilac;
 
     } else if (zmk_keymap_layer_active(numeric_layer)) {
+
+        state.animation_step = 3;
 
         // indicator
         pixels[36] = greenish;
@@ -400,6 +409,8 @@ static void valdur_indicate_custom_layers(void) {
         pixels[7] = yellow;
         pixels[8] = yellow;
         pixels[9] = yellow;
+    } else {
+        state.animation_step = 0;
     }
 }
 
