@@ -274,12 +274,8 @@ static void zmk_led_write_pixels(void) {
 #if !UNDERGLOW_INDICATORS_ENABLED
 static int zmk_led_generate_status(void) { return 0; }
 static void valdur_indicate_custom_layers(void) {
-
     for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
-        struct zmk_led_hsb hsb = state.color;
-        hsb.h = state.animation_step * 60;
-
-        pixels[i] = hsb_to_rgb(hsb_scale_min_max(hsb));
+        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
     }
 }
 
@@ -343,9 +339,9 @@ static void valdur_indicate_custom_layers(void) {
         pixels[19] = yellow;
         pixels[13] = yellow;
 
-        // ctrl arrows
-        pixels[8] = yellow;
-        pixels[31] = yellow;
+        // // ctrl arrows
+        // pixels[8] = yellow;
+        // pixels[31] = yellow;
 
         // home, end, pgup, pgdn
         pixels[17] = nice_blue;
@@ -353,9 +349,9 @@ static void valdur_indicate_custom_layers(void) {
         pixels[24] = nice_blue;
         pixels[12] = nice_blue;
 
-        // ctrl home, end
-        pixels[7] = nice_blue;
-        pixels[30] = nice_blue;
+        // // ctrl home, end
+        // pixels[7] = nice_blue;
+        // pixels[30] = nice_blue;
 
         // enter, backspace, delete
         pixels[14] = lilac;
@@ -378,7 +374,6 @@ static void valdur_indicate_custom_layers(void) {
         pixels[5] = lilac;
         pixels[27] = lilac;
         pixels[33] = lilac;
-
     } else if (zmk_keymap_layer_active(numeric_layer)) {
 
         state.animation_step = 3;
