@@ -36,6 +36,10 @@
 #include <zmk/split/bluetooth/central.h>
 #endif
 
+#if !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+#include <zmk/split/bluetooth/peripheral_layers.h>
+#endif
+
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if !DT_HAS_CHOSEN(zmk_underglow)
@@ -50,6 +54,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define HUE_MAX 360
 #define SAT_MAX 100
 #define BRT_MAX 100
+
+#define LAYER_GAMING 1
+#define LAYER_LOWER 2
+#define LAYER_NUMERIC 3
 
 BUILD_ASSERT(CONFIG_ZMK_RGB_UNDERGLOW_BRT_MIN <= CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX,
              "ERROR: RGB underglow maximum brightness is less than minimum brightness");
@@ -277,6 +285,19 @@ static void valdur_indicate_custom_layers(void) {
     for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
         pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
     }
+    if (peripheral_layer_active(LAYER_NUMERIC)) {
+        struct zmk_led_hsb hsb = state.color;
+        hsb.h = 60;
+        pixels[0] = hsb_to_rgb(hsb_scale_min_max(hsb));
+    } else if (peripheral_layer_active(LAYER_LOWER)) {
+        struct zmk_led_hsb hsb = state.color;
+        hsb.h = 120;
+        pixels[1] = hsb_to_rgb(hsb_scale_min_max(hsb));
+    } else if (peripheral_layer_active(LAYER_GAMING)) {
+        struct zmk_led_hsb hsb = state.color;
+        hsb.h = 0;
+        pixels[2] = hsb_to_rgb(hsb_scale_min_max(hsb));
+    }
 }
 
 #else
@@ -322,13 +343,8 @@ static void valdur_indicate_custom_layers(void) {
         pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
     }
 
-    uint8_t gaming_layer = 1;
-    uint8_t lower_layer = 2;
-    uint8_t numeric_layer = 3;
 
-    if (zmk_keymap_layer_active(lower_layer)) {
-
-        state.animation_step = 1;
+    if (zmk_keymap_layer_active(LAYER_LOWER)) {
 
         // indicator
         pixels[37] = yellow;
@@ -357,9 +373,7 @@ static void valdur_indicate_custom_layers(void) {
         pixels[14] = lilac;
         pixels[26] = lilac;
         pixels[32] = lilac;
-    } else if (zmk_keymap_layer_active(gaming_layer)) {
-
-        state.animation_step = 2;
+    } else if (zmk_keymap_layer_active(LAYER_GAMING)) {
 
         // indicator
         pixels[38] = red;
@@ -373,10 +387,7 @@ static void valdur_indicate_custom_layers(void) {
         // enter, backspace, delete
         pixels[5] = lilac;
         pixels[27] = lilac;
-        pixels[33] = lilac;
-    } else if (zmk_keymap_layer_active(numeric_layer)) {
-
-        state.animation_step = 3;
+    } else if (zmk_keymap_layer_active(LAYER_NUMERIC)) {
 
         // indicator
         pixels[36] = greenish;
