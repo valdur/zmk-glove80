@@ -289,7 +289,7 @@ static bool valdur_layer_active(int layer) { return peripheral_layer_active(laye
 
 #else
 
-static bool valdur_layer_active(int layer) { return zmk_keymap_layer_activate(layer); }
+static bool valdur_layer_active(int layer) { return zmk_keymap_layer_active(layer); }
 
 const uint8_t underglow_layer_state[] = DT_PROP(UNDERGLOW_INDICATORS, layer_state);
 const uint8_t underglow_ble_state[] = DT_PROP(UNDERGLOW_INDICATORS, ble_state);
