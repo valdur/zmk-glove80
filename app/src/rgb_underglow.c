@@ -199,7 +199,7 @@ static void zmk_rgb_underglow_effect_swirl(void) {
     state.animation_step = state.animation_step % HUE_MAX;
 }
 
-static void valdur_indicate_custom_layers(void);
+static bool valdur_layer_active(int layer);
 
 static int zmk_led_generate_status(void);
 
@@ -275,32 +275,21 @@ static void zmk_led_write_pixels(void) {
 
 #if defined(DT_N_S_underglow_indicators_EXISTS)
 #define UNDERGLOW_INDICATORS_ENABLED 1
+#define LEFT_HALF
 #else
 #define UNDERGLOW_INDICATORS_ENABLED 0
+#define RIGHT_HALF
 #endif
+
+
 
 #if !UNDERGLOW_INDICATORS_ENABLED
 static int zmk_led_generate_status(void) { return 0; }
-static void valdur_indicate_custom_layers(void) {
-    for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
-        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
-    }
-    if (peripheral_layer_active(LAYER_NUMERIC)) {
-        struct zmk_led_hsb hsb = state.color;
-        hsb.h = 60;
-        pixels[0] = hsb_to_rgb(hsb_scale_min_max(hsb));
-    } else if (peripheral_layer_active(LAYER_LOWER)) {
-        struct zmk_led_hsb hsb = state.color;
-        hsb.h = 120;
-        pixels[1] = hsb_to_rgb(hsb_scale_min_max(hsb));
-    } else if (peripheral_layer_active(LAYER_GAMING)) {
-        struct zmk_led_hsb hsb = state.color;
-        hsb.h = 0;
-        pixels[2] = hsb_to_rgb(hsb_scale_min_max(hsb));
-    }
-}
+static bool valdur_layer_active(int layer) { return peripheral_layer_active(layer); }
 
 #else
+
+static bool valdur_layer_active(int layer) { return zmk_keymap_layer_activate(layer); }
 
 const uint8_t underglow_layer_state[] = DT_PROP(UNDERGLOW_INDICATORS, layer_state);
 const uint8_t underglow_ble_state[] = DT_PROP(UNDERGLOW_INDICATORS, ble_state);
@@ -324,101 +313,7 @@ const struct led_rgb white = HEXRGB(0xff, 0xff, 0xff);
 const struct led_rgb lilac = HEXRGB(0x6b, 0x1f, 0xce);
 const struct led_rgb greenish = HEXRGB(0x00, 0xff, 0x88);
 
-/*
-  MoErgo 40 LEDs
 
-  34 28 22 16 10
-  35 29 23 17 11 6
-  36 30 24 18 12 7
-  37 31 25 19 13 8
-  38 32 26 20 14 9
-  39 33 27 21 15
-                0 1 2
-                3 4 5
-*/
-
-static void valdur_indicate_custom_layers(void) {
-
-    for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
-        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
-    }
-
-
-    if (zmk_keymap_layer_active(LAYER_LOWER)) {
-
-        // indicator
-        pixels[37] = yellow;
-
-        // arrows
-        pixels[18] = yellow;
-        pixels[25] = yellow;
-        pixels[19] = yellow;
-        pixels[13] = yellow;
-
-        // // ctrl arrows
-        // pixels[8] = yellow;
-        // pixels[31] = yellow;
-
-        // home, end, pgup, pgdn
-        pixels[17] = nice_blue;
-        pixels[20] = nice_blue;
-        pixels[24] = nice_blue;
-        pixels[12] = nice_blue;
-
-        // // ctrl home, end
-        // pixels[7] = nice_blue;
-        // pixels[30] = nice_blue;
-
-        // enter, backspace, delete
-        pixels[14] = lilac;
-        pixels[26] = lilac;
-        pixels[32] = lilac;
-    } else if (zmk_keymap_layer_active(LAYER_GAMING)) {
-
-        // indicator
-        pixels[38] = red;
-
-        // wsad
-        pixels[18] = red;
-        pixels[25] = red;
-        pixels[19] = red;
-        pixels[13] = red;
-
-        // enter, backspace, delete
-        pixels[5] = lilac;
-        pixels[27] = lilac;
-    } else if (zmk_keymap_layer_active(LAYER_NUMERIC)) {
-
-        // indicator
-        pixels[36] = greenish;
-
-        // numbers
-        pixels[23] = greenish;
-        pixels[17] = greenish;
-        pixels[11] = greenish;
-
-        pixels[24] = greenish;
-        pixels[18] = greenish;
-        pixels[12] = greenish;
-
-        pixels[25] = greenish;
-        pixels[19] = greenish;
-        pixels[13] = greenish;
-
-        pixels[26] = greenish;
-
-        // operators
-        pixels[31] = yellow;
-        pixels[32] = yellow;
-        pixels[27] = yellow; // dot
-
-        pixels[7] = yellow;
-        pixels[8] = yellow;
-        pixels[9] = yellow;
-    } else {
-        state.animation_step = 0;
-    }
-}
 
 static void zmk_led_battery_level(int bat_level, const uint8_t *addresses, size_t addresses_len) {
     struct led_rgb bat_colour;
@@ -538,6 +433,129 @@ static int zmk_led_generate_status(void) {
     return blend;
 }
 #endif // underglow_indicators exists
+
+static inline struct led_rgb hue_sat(int hue, int sat) {
+    struct zmk_led_hsb hsb = state.color;
+    hsb.h = hue;
+    hsb.s = sat;
+    return hsb_to_rgb(hsb_scale_min_max(hsb));
+}
+
+#define MK_GREEN hue_sat(172, 100)
+#define MK_RED hue_sat(338, 100)
+#define MK_BLUE hue_sat(194, 100)
+#define MK_ORANGE hue_sat(33, 100)
+#define MK_YELLOW hue_sat(33, 100)
+#define MK_PURPLE hue_sat(267, 60)
+#define MK_WHITE hue_sat(0, 0);
+
+/*
+  MoErgo 40 LEDs
+
+ 34 28 22 16 10                10 16 22 28 34
+ 35 29 23 17 11 6            6 11 17 23 29 35
+ 36 30 24 18 12 7            7 12 18 24 30 36
+ 37 31 25 19 13 8            8 13 19 25 31 37
+ 38 32 26 20 14 9            9 14 20 26 32 38
+ 39 33 27 21 15                15 21 27 33 39
+               0 1 2       2 1 0
+               3 4 5       5 4 3
+*/
+
+static void valdur_indicate_custom_layers(void) {
+    for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
+        pixels[i] = (y){r : 0, g : 0, b : 0};
+    }
+    if (valdur_layer_active(LAYER_NUMERIC)) {
+        struct led_rgb col_green = MK_GREEN;
+        struct led_rgb col_yellow = MK_YELLOW;
+
+#ifdef LEFT_HALF
+        // indicator
+        pixels[36] = col_green;
+#endif
+
+        // numbers
+        pixels[11] = col_green;
+        pixels[12] = col_green;
+        pixels[13] = col_green;
+#ifdef RIGHT_HALF
+        pixels[14] = col_green;
+#endif
+
+        pixels[17] = col_green;
+        pixels[18] = col_green;
+        pixels[19] = col_green;
+
+        pixels[23] = col_green;
+        pixels[24] = col_green;
+        pixels[25] = col_green;
+#ifdef LEFT_HALF
+        pixels[26] = col_green;
+#endif
+
+        // operators
+        pixels[31] = col_yellow;
+        pixels[32] = col_yellow;
+        pixels[27] = col_yellow;
+
+        pixels[7] = col_yellow;
+        pixels[8] = col_yellow;
+        pixels[9] = col_yellow;
+
+    } else if (valdur_layer_active(LAYER_LOWER)) {
+        struct led_rgb col_orange = MK_ORANGE;
+        struct led_rgb col_blue = MK_BLUE;
+
+#ifdef LEFT_HALF
+        // indicator
+        pixels[37] = col_orange;
+#endif
+
+        // arrows
+        pixels[18] = col_orange;
+        pixels[25] = col_orange;
+        pixels[19] = col_orange;
+        pixels[13] = col_orange;
+
+        // // ctrl arrows
+        // pixels[8] = yellow;
+        // pixels[31] = yellow;
+
+        // home, end, pgup, pgdn
+        pixels[7] = col_blue;
+        pixels[8] = col_blue;
+        pixels[24] = col_blue;
+        pixels[12] = col_blue;
+    } else if (valdur_layer_active(LAYER_GAMING)) {
+        struct led_rgb col_red = MK_RED;
+        struct led_rgb col_blue = MK_BLUE;
+#ifdef LEFT_HALF
+
+        // indicator
+        pixels[38] = col_red;
+
+        // wsad
+        pixels[18] = col_red;
+        pixels[25] = col_red;
+        pixels[19] = col_red;
+        pixels[13] = col_red;
+
+        // enter, backspace, delete
+        pixels[5] = col_blue;
+        pixels[27] = col_blue;
+        pixels[33] = col_blue;
+#else
+        pixels[6] = col_red;
+#endif
+    } else {
+#ifdef LEFT_HALF
+        pixels[6] = MK_BLUE;
+#else
+        pixels[6] = MK_ORANGE;
+#endif
+    }
+}
 
 static void zmk_rgb_underglow_tick(struct k_work *work) {
     switch (state.current_effect) {
