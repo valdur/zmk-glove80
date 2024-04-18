@@ -441,11 +441,11 @@ static inline struct led_rgb hue_sat(int hue, int sat) {
     return hsb_to_rgb(hsb_scale_min_max(hsb));
 }
 
-#define MK_GREEN hue_sat(172, 100)
-#define MK_RED hue_sat(338, 100)
+#define MK_GREEN hue_sat(150, 100)
+#define MK_RED hue_sat(348, 100)
 #define MK_BLUE hue_sat(194, 100)
-#define MK_ORANGE hue_sat(33, 100)
-#define MK_YELLOW hue_sat(33, 100)
+#define MK_ORANGE hue_sat(20, 100)
+#define MK_YELLOW hue_sat(51, 100)
 #define MK_PURPLE hue_sat(267, 60)
 #define MK_WHITE hue_sat(0, 0);
 
