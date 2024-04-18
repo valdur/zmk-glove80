@@ -464,7 +464,7 @@ static inline struct led_rgb hue_sat(int hue, int sat) {
 
 static void valdur_indicate_custom_layers(void) {
     for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
-        pixels[i] = (y){r : 0, g : 0, b : 0};
+        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
     }
     if (valdur_layer_active(LAYER_NUMERIC)) {
         struct led_rgb col_green = MK_GREEN;
