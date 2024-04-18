@@ -145,6 +145,7 @@ int release_peripheral_slot(int index) {
 #if IS_ENABLED(CONFIG_ZMK_SPLIT_PERIPHERAL_HID_INDICATORS)
     slot->update_hid_indicators = 0;
 #endif // IS_ENABLED(CONFIG_ZMK_SPLIT_PERIPHERAL_HID_INDICATORS)
+    slot->update_layers_handle = 0;
 
     return 0;
 }
@@ -484,6 +485,8 @@ static uint8_t split_central_chrc_discovery_func(struct bt_conn *conn,
 #if IS_ENABLED(CONFIG_ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING)
     subscribed = subscribed && slot->batt_lvl_subscribe_params.value_handle;
 #endif /* IS_ENABLED(CONFIG_ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING) */
+
+    subscribed = subscribed && slot->update_layers_handle;
 
     return subscribed ? BT_GATT_ITER_STOP : BT_GATT_ITER_CONTINUE;
 }
@@ -889,7 +892,9 @@ static void split_central_update_layers_callback(struct k_work *work) {
                                                  sizeof(layers), true);
 
         if (err) {
-            LOG_ERR("Failed to write HID indicator characteristic (err %d)", err);
+            LOG_ERR("Failed to send layers to peripheral (err %d)", err);
+        } else {
+            LOG_DBG("Sent Layers over to peripheral");
         }
     }
 }
