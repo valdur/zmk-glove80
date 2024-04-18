@@ -550,9 +550,9 @@ static void valdur_indicate_custom_layers(void) {
 #endif
     } else {
 #ifdef LEFT_HALF
-        pixels[6] = MK_BLUE;
+        pixels[6] = MK_PURPLE;
 #else
-        pixels[6] = MK_ORANGE;
+        pixels[6] = MK_PURPLE;
 #endif
     }
 }
