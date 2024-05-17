@@ -540,9 +540,11 @@ static void valdur_indicate_custom_layers(void) {
 #else
 
         // movement
+        pixels[13] = col_blue;
         pixels[18] = col_blue;
-        pixels[25] = col_blue;
         pixels[19] = col_blue;
+        pixels[25] = col_blue;
+
 
         // scrolling
         pixels[8] = col_purple;
@@ -553,6 +555,8 @@ static void valdur_indicate_custom_layers(void) {
         // buttons
         pixels[3] = col_red;
         pixels[4] = col_red;
+        pixels[14] = col_red;
+        pixels[26] = col_red;
         pixels[31] = col_red;
 #endif
     } else if (valdur_layer_active(LAYER_GAMING)) {
@@ -568,7 +572,6 @@ static void valdur_indicate_custom_layers(void) {
 
         // enter, backspace, delete
         pixels[5] = col_blue;
-        pixels[27] = col_blue;
         pixels[33] = col_blue;
 #else
         pixels[6] = col_red;
@@ -591,11 +594,8 @@ static void valdur_indicate_custom_layers(void) {
         pixels[13] = col_yellow;
 #endif
     } else {
-#ifdef LEFT_HALF
-        pixels[6] = MK_PURPLE;
-#else
         pixels[6] = MK_BLUE;
-#endif
+
     }
 }
 
