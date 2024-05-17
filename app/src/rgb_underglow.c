@@ -56,8 +56,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define BRT_MAX 100
 
 #define LAYER_GAMING 1
-#define LAYER_LOWER 2
-#define LAYER_NUMERIC 3
+#define LAYER_ARROW_GAMING 2
+#define LAYER_MOUSE 3
+#define LAYER_LOWER 4
+#define LAYER_NUMERIC 5
 
 BUILD_ASSERT(CONFIG_ZMK_RGB_UNDERGLOW_BRT_MIN <= CONFIG_ZMK_RGB_UNDERGLOW_BRT_MAX,
              "ERROR: RGB underglow maximum brightness is less than minimum brightness");
@@ -476,32 +478,32 @@ static void valdur_indicate_custom_layers(void) {
 #endif
 
         // numbers
-        pixels[11] = col_green;
         pixels[12] = col_green;
         pixels[13] = col_green;
-#ifdef RIGHT_HALF
         pixels[14] = col_green;
+#ifdef RIGHT_HALF
+        pixels[15] = col_green;
 #endif
 
-        pixels[17] = col_green;
         pixels[18] = col_green;
         pixels[19] = col_green;
+        pixels[20] = col_green;
 
-        pixels[23] = col_green;
         pixels[24] = col_green;
         pixels[25] = col_green;
-#ifdef LEFT_HALF
         pixels[26] = col_green;
+#ifdef LEFT_HALF
+        pixels[27] = col_green;
 #endif
 
-        // operators
-        pixels[31] = col_yellow;
-        pixels[32] = col_yellow;
-        pixels[27] = col_yellow;
+        // // operators
+        // pixels[31] = col_yellow;
+        // pixels[32] = col_yellow;
+        // pixels[27] = col_yellow;
 
-        pixels[7] = col_yellow;
-        pixels[8] = col_yellow;
-        pixels[9] = col_yellow;
+        // pixels[7] = col_yellow;
+        // pixels[8] = col_yellow;
+        // pixels[9] = col_yellow;
 
     } else if (valdur_layer_active(LAYER_LOWER)) {
         struct led_rgb col_orange = MK_ORANGE;
@@ -527,13 +529,36 @@ static void valdur_indicate_custom_layers(void) {
         pixels[8] = col_blue;
         pixels[24] = col_blue;
         pixels[12] = col_blue;
+    } else if (valdur_layer_active(LAYER_MOUSE)) {
+        struct led_rgb col_red = MK_RED;
+        struct led_rgb col_blue = MK_BLUE;
+        struct led_rgb col_purple = MK_PURPLE;
+
+#ifdef LEFT_HALF
+        // indicator
+        pixels[38] = col_blue;
+#else
+
+        // movement
+        pixels[18] = col_blue;
+        pixels[25] = col_blue;
+        pixels[19] = col_blue;
+
+        // scrolling
+        pixels[8] = col_purple;
+        pixels[9] = col_purple;
+        pixels[24] = col_purple;
+        pixels[12] = col_purple;
+
+        // buttons
+        pixels[3] = col_red;
+        pixels[4] = col_red;
+        pixels[31] = col_red;
+#endif
     } else if (valdur_layer_active(LAYER_GAMING)) {
         struct led_rgb col_red = MK_RED;
         struct led_rgb col_blue = MK_BLUE;
 #ifdef LEFT_HALF
-
-        // indicator
-        pixels[38] = col_red;
 
         // wsad
         pixels[18] = col_red;
@@ -548,11 +573,28 @@ static void valdur_indicate_custom_layers(void) {
 #else
         pixels[6] = col_red;
 #endif
+    } else if (valdur_layer_active(LAYER_ARROW_GAMING)) {
+        struct led_rgb col_red = MK_RED;
+        struct led_rgb col_blue = MK_BLUE;
+        struct led_rgb col_yellow = MK_YELLOW;
+
+#ifdef LEFT_HALF
+
+        // enter, backspace, delete
+        pixels[19] = col_red;
+        pixels[13] = col_blue;
+#else
+        // wsad
+        pixels[18] = col_yellow;
+        pixels[25] = col_yellow;
+        pixels[19] = col_yellow;
+        pixels[13] = col_yellow;
+#endif
     } else {
 #ifdef LEFT_HALF
         pixels[6] = MK_PURPLE;
 #else
-        pixels[6] = MK_PURPLE;
+        pixels[6] = MK_BLUE;
 #endif
     }
 }
